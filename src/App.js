@@ -1,24 +1,82 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import Users from "./users/pages/Users";
+import NewPlace from "./places/pages/NewPlace";
+import UserPlaces from "./places/pages/UserPlaces";
+import UpdatePlace from "./places/pages/UpdatePlace";
+import Auth from "./users/pages/Auth";
+import MainNavigation from "./shared/components/Navigation/MainNavigation";
+import { AuthContext } from "./shared/components/context/auth-context";
+import { useAuth } from "./shared/Hooks/auth-hook";
+import {
+  BrowserRouter as Router,
+  Route,
+  Redirect,
+  Switch,
+} from "react-router-dom";
+//import LoadingSpinner from "./shared/components/UIElements/LoadingSpinner";
 
+// const Users = React.lazy(() => import("./users/pages/Users"));
+// const NewPlace = React.lazy(() => import("./places/pages/NewPlace"));
+// const UserPlaces = React.lazy(() => import("./places/pages/UserPlaces"));
+// const UpdatePlace = React.lazy(() => import("./places/pages/UpdatePlace"));
+// const Auth = React.lazy(() => import("./users/pages/Auth"));
 function App() {
+  const { token, login, logout, userId } = useAuth();
+  let routes;
+
+  console.log("User ID:", userId);
+  console.log("Token:", token);
+
+  if (!token) {
+    routes = (
+      <Switch>
+        <Route path="/" exact>
+          <Users />
+        </Route>
+        <Route path="/:userId/places" exact>
+          <UserPlaces />
+        </Route>
+        <Route path="/auth" exact>
+          <Auth />
+        </Route>
+        <Redirect to="/auth" />
+      </Switch>
+    );
+  } else {
+    routes = (
+      <Switch>
+        <Route path="/" exact>
+          <Users />
+        </Route>
+        <Route path="/:userId/places" exact>
+          <UserPlaces />
+        </Route>
+        <Route path="/places/new" exact>
+          <NewPlace />
+        </Route>
+        <Route path="/places/:placeId" exact>
+          <UpdatePlace />
+        </Route>
+        <Redirect to="/" />
+      </Switch>
+    );
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn: !!token,
+        token: token,
+        userId: userId,
+        login: login,
+        logout: logout,
+      }}
+    >
+      <Router>
+        <MainNavigation />
+        <main>{routes}</main>
+      </Router>
+    </AuthContext.Provider>
   );
 }
 
